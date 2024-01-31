@@ -10,9 +10,12 @@ Dialog::Dialog(QWidget *parent) :
 
     //Tehdään connectit
     ui->setupUi(this);
+    setWindowTitle("Nosto ja talletushistoria");
     connect(ui->edellinen,SIGNAL(clicked(bool)),this,SLOT(edellinenHandler()));
     connect(ui->seuraava,SIGNAL(clicked(bool)),this,SLOT(seuraavaHandler()));
     connect(ui->takaisin,SIGNAL(clicked(bool)),this,SLOT(takaisinHandler()));
+
+    //Debug-arvoja mainwindowista tuoduille muuttujille
     qDebug()<<"TiliID:";
     qDebug()<<TiliID;
     qDebug()<<"token:";
@@ -28,6 +31,10 @@ Dialog::~Dialog()
 void Dialog::edellinenHandler()
 {
     qDebug()<<"edellinen";
+
+    //Katsotaan, onko offset-muuttuja erisuuri kuin nolla.
+    //Jos offset on 0, edelliselle sivulle ei voi mennä
+    //Jos offset on erisuuri kuin 0, offsettiä vähennetään viidellä ja edelliselle sivulle voi mennä
     if(Offset!=0){
     Offset = Offset-5;
     } else {
@@ -40,7 +47,11 @@ void Dialog::edellinenHandler()
 void Dialog::seuraavaHandler()
 {
     qDebug()<<"seuraava";
-    qDebug()<<Toisto;
+    qDebug()<<maaracounter;
+    maaracounter =maaracounter-1;
+    //Katsotaan, onko tämän hetkisellä sivulla 5 arvoa, vai vähemmän.
+    //Jos arvoja on vähemmän kuin 5, offsettiä ei kasvateta, eikä seuraavalle sivulle voi mennä
+    //Jos arvoja on 5, offset kasvaa viidellä ja seuraavalle sivulle voi mennä
     if(maaracounter <5){
     qDebug()<<"Ei toisto";
     }
@@ -55,25 +66,26 @@ void Dialog::seuraavaHandler()
 void Dialog::takaisinHandler()
 {
     qDebug()<<"takaisin";
+    //UI suljetaan ja pointteri poistetaan
     this->close();
-    this->deleteLater();
 }
 
 void Dialog::getHistory()
 {
-    qDebug()<<"testi";
+
+    //Muutetaan offset- ja debit-muuttujat QStringiksi get-requestia varten
     QString OffsetT = QString::number(Offset);
     QString DebitT = QString::number(Debit);
+
+    //Debugit QStringiksi muutetuille arvoille
     qDebug()<<OffsetT;
     qDebug()<<DebitT;
     qDebug()<<"TiliID"+TiliID;
-    QString site_url=Environment::getBaseUrl()+"/nostoH/1/1/"+OffsetT;
+
+    //URLin asettaminen get-requestille
+    QString site_url=Environment::getBaseUrl()+"/nostoH/"+DebitT+"/"+TiliID+"/"+OffsetT;
 
     qDebug()<<site_url;
-    //QString tili_url=getBaseURLTili() + databaseID,
-    //asiakasTili_url = getBaseURLpvNostoRaja() + AsiakasID + "/" + databaseID;
-    //qDebug()<<tili_url;
-    //QNetworkRequest requestTili((tili_url)), requestAsiakasTili((asiakasTili_url));
 
     QNetworkRequest request((site_url));
     //WEBTOKEN ALKU
@@ -100,103 +112,101 @@ void Dialog::getHistorySlot(QNetworkReply*reply)
            idTili+=QString::number(json_obj["idTili"].toInt());
          }
 
-    /*qDebug()<<"nostoID: "+idNostoHistoria;
-    qDebug()<<"aika: "+DATETIME;
-    //qDebug()<<"maara: "+MAARA;
-    qDebug()<<"debittest: "+Debit;
-    qDebug()<<"tiliID: "+idTili;*/
-
+    //Arvot muutetaan QStringListeiksi ja eritellään toisistaan asettamalla niiden väliin pilkut ja splittaamalla
     QStringList MAARA1 = MAARA.split(",");
     int maara = MAARA1.count();
     maaracounter = MAARA1.count();
     QStringList DATETIME1 = DATETIME.split(",");
-    QString maara5;
-    QString DATE5;
+
+    //Tehdään muuttujat summien ja datetimen settaamiseen
+    QString maaraSet;
+    QString DATETIMEset;
     maara=maara-1;
     qDebug()<<idNostoHistoria;
+
+    //Tyhjennetään labelit ennen sivun vaihtoa, etteivät vanhat arvot jää näkyviin sivun vaihtuessa
     if(idNostoHistoria != vanhanostoID){
-    for(int x=0;x<5;x++){
-                switch (x){
-                case 0:
-                    ui->aika1->setText("");
-                    ui->maara1->setText("");
-                    break;
-                case 1:
-                    ui->aika2->setText("");
-                    ui->maara2->setText("");
-                    break;
-                case 2:
-                    ui->aika3->setText("");
-                    ui->maara3->setText("");
-                    break;
-                case 3:
-                    ui->aika4->setText("");
-                    ui->maara4->setText("");
-                    break;
-                case 4:
-                    ui->aika5->setText("");
-                    ui->maara5->setText("");
-                    break;
-              }
-    }
-    for(int x=0;x<maara;x++){
-        switch (x){
-        case 0:
-            maara5 = MAARA1[x];
-            ui->maara1->setText(maara5);
-            break;
-        case 1:
-            maara5 = MAARA1[x];
-            ui->maara2->setText(maara5);
-            break;
-        case 2:
-            maara5 = MAARA1[x];
-            ui->maara3->setText(maara5);
-            break;
-        case 3:
-            maara5 = MAARA1[x];
-            ui->maara4->setText(maara5);
-            break;
-        case 4:
-            maara5 = MAARA1[x];
-            ui->maara5->setText(maara5);
-            break;
+        for(int x=0;x<5;x++){
+                    switch (x){
+                    case 0:
+                        ui->aika1->setText("");
+                        ui->maara1->setText("");
+                        break;
+                    case 1:
+                        ui->aika2->setText("");
+                        ui->maara2->setText("");
+                        break;
+                    case 2:
+                        ui->aika3->setText("");
+                        ui->maara3->setText("");
+                        break;
+                    case 3:
+                        ui->aika4->setText("");
+                        ui->maara4->setText("");
+                        break;
+                    case 4:
+                        ui->aika5->setText("");
+                        ui->maara5->setText("");
+                        break;
+                  }
         }
-    for(int x=0;x<maara;x++){
+        //Asetetaan labeleihin nostojen/talletusten määrät
+        for(int x=0;x<maara;x++){
             switch (x){
             case 0:
-                DATE5 = DATETIME1[x];
-                ui->aika1->setText(DATE5);
+                maaraSet = MAARA1[x];
+                ui->maara1->setText(maaraSet);
                 break;
             case 1:
-                DATE5 = DATETIME1[x];
-                ui->aika2->setText(DATE5);
+                maaraSet = MAARA1[x];
+                ui->maara2->setText(maaraSet);
                 break;
             case 2:
-                DATE5 = DATETIME1[x];
-                ui->aika3->setText(DATE5);
+                maaraSet = MAARA1[x];
+                ui->maara3->setText(maaraSet);
                 break;
             case 3:
-                DATE5 = DATETIME1[x];
-                ui->aika4->setText(DATE5);
+                maaraSet = MAARA1[x];
+                ui->maara4->setText(maaraSet);
                 break;
             case 4:
-                DATE5 = DATETIME1[x];
-                ui->aika5->setText(DATE5);
+                maaraSet = MAARA1[x];
+                ui->maara5->setText(maaraSet);
                 break;
             }
 
+            //Asetetaan labeleihin nostojen/talletusten tapahtuma-ajat
+            for(int x=0;x<maara;x++){
+                switch (x){
+                case 0:
+                    DATETIMEset = DATETIME1[x].replace("T"," ").replace("Z"," ").remove(19,22);
+                    ui->aika1->setText(DATETIMEset);
+                    break;
+                case 1:
+                    DATETIMEset = DATETIME1[x].replace("T"," ").replace("Z"," ").remove(19,22);
+                    ui->aika2->setText(DATETIMEset);
+                    break;
+                case 2:
+                    DATETIMEset = DATETIME1[x].replace("T"," ").replace("Z"," ").remove(19,22);
+                    ui->aika3->setText(DATETIMEset);
+                    break;
+                case 3:
+                    DATETIMEset = DATETIME1[x].replace("T"," ").replace("Z"," ").remove(19,22);
+                    ui->aika4->setText(DATETIMEset);
+                    break;
+                case 4:
+                    DATETIMEset = DATETIME1[x].replace("T"," ").replace("Z"," ").remove(19,22);
+                    ui->aika5->setText(DATETIMEset);
+                    break;
+                }
+
+        }
+     Toisto = false;
     }
- Toisto = false;
-}
-} else {
- qDebug()<<"toistoa";
- Toisto = true;
-}
-    qDebug()<<idNostoHistoria;
-    qDebug()<<vanhanostoID;
-    //ui->aika1->setText(DATETIME);
-    //ui->maara1->setText(MAARA1[1]);
+    } else {
+     qDebug()<<"toistoa";
+     Toisto = true;
+    }
     reply->deleteLater();
     getHistoryManager->deleteLater();
 }

@@ -18,6 +18,7 @@ CreditDebit::~CreditDebit()
 
 void CreditDebit::valinta()
 {
+    setWindowTitle("Valitse Tili");
     QPushButton * sent = qobject_cast<QPushButton*>(sender());
     QString name = sent -> objectName();
     //Katsotaan lähettäjän nimi ja sitä kayttäen asetetaan boolean muutuja Debit sekä lähetetään signaali joka kertoo ikkunan sammuneen

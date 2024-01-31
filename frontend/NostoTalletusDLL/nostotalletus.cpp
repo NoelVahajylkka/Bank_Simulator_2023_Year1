@@ -30,6 +30,8 @@ NostoTalletus::NostoTalletus(QWidget *parent) :
             this, SLOT(clickHandlerMuuSumma()));
     connect(ui->buttonEnter, SIGNAL(clicked(bool)),
             this, SLOT(clickHandlerEnter()));
+    connect(ui->buttonPeruuta, SIGNAL(clicked(bool)),
+            this, SLOT(clickHandlerPeruuta()));
 
 }
 
@@ -108,6 +110,11 @@ void NostoTalletus::clickHandlerMuuSumma()
     ui->labelMaara->setText("Syötä nostettava määrä täyslukuna tekstikenttään ja paina ENTER\nMin. Määrä: 10€\nMax. Määrä: 400€");
 }
 
+void NostoTalletus::clickHandlerPeruuta()
+{
+    this->close();
+}
+
 float NostoTalletus::checkNumber()
 {
     float luku = ui->textNostoTalletus->text().toFloat();
@@ -146,6 +153,7 @@ lähettää mainwindowiin nostetun luvun */
 void NostoTalletus::checkBalance()
 {
     float luku = checkNumber();
+    float creditTarkistus = creditSaldo + luottoRaja;
 
     if((debitSaldo>=luku) && (Debit == true))
     {
@@ -154,35 +162,36 @@ void NostoTalletus::checkBalance()
             qDebug()<<"NostoDLL | Tests passed. Sending deductable amount";
             emit sendAmount(debitSaldo,-luku);
             ui->labelMaara->setText("Nosto onnistui");
+            this->close();
+            //this->deleteLater();
         }
         else if (nostoRaja == 0)
         {
             qDebug()<<"NostoDLL | Tests passed. Sending deductable amount";
             emit sendAmount(debitSaldo,-luku);
             ui->labelMaara->setText("Nosto onnistui");
+            this->close();
         }
         else
         {
             ui->labelMaara->setText("Nosto epäonnistui\nPäiväNostoraja ylitetty");
         }
     }
-    else if((creditSaldo>=luku) && (Debit == false))
+    else if((creditTarkistus>=luku) && (Debit == false))
     {
-        if((luottoRaja>=luku) && (nostoRaja>=luku))
+        if(nostoRaja>=luku)
         {
             qDebug()<<"NostoDLL | Tests passed. Sending deductable amount";
             emit sendAmount(creditSaldo,-luku);
             ui->labelMaara->setText("Nosto onnistui");
+            this->close();
         }
-        else if ((luottoRaja>=luku) && (nostoRaja == 0))
+        else if (nostoRaja == 0)
         {
             qDebug()<<"NostoDLL | Tests passed. Sending deductable amount";
             emit sendAmount(creditSaldo,-luku);
             ui->labelMaara->setText("Nosto onnistui");
-        }
-        else if (luottoRaja<luku)
-        {
-            ui->labelMaara->setText("Nosto epäonnistui\nLuottoraja ylitetty");
+            this->close();
         }
         else
         {
@@ -191,13 +200,14 @@ void NostoTalletus::checkBalance()
     }
     else
     {
-          ui->labelMaara->setText("Nosto epäonnistui\nTilillä ei riittävästi rahaa");
+          ui->labelMaara->setText("Nosto epäonnistui\nLuottoraja ylitetty");
+
     }
 }
 
-void NostoTalletus::replyT(QNetworkReply *reply)
+void NostoTalletus::replyT(QNetworkReply *replyTili)
 {
-    response_data=reply->readAll();
+    response_data=replyTili->readAll();
     //qDebug()<<"DATA : "+response_data;
     QJsonDocument json_doc = QJsonDocument::fromJson(response_data);
     QJsonArray json_array = json_doc.array();
@@ -218,13 +228,13 @@ void NostoTalletus::replyT(QNetworkReply *reply)
     creditSaldo = cSaldo.toFloat();
     luottoRaja =lRaja.toFloat();
 
-    reply->deleteLater();
+    replyTili->deleteLater();
     getBalance->deleteLater();
 }
 
-void NostoTalletus::replyNRaja(QNetworkReply *reply)
+void NostoTalletus::replyNRaja(QNetworkReply *replyNostoRaja)
 {
-    response_data=reply->readAll();
+    response_data=replyNostoRaja->readAll();
     //qDebug()<<"DATA : "+response_data;
     QJsonDocument json_doc = QJsonDocument::fromJson(response_data);
     QJsonArray json_array = json_doc.array();
@@ -237,6 +247,6 @@ void NostoTalletus::replyNRaja(QNetworkReply *reply)
     qDebug()<<"PaivaNostoraja : "+nRaja;
     nostoRaja = nRaja.toFloat();
 
-    reply->deleteLater();
+    replyNostoRaja->deleteLater();
     getNostoRaja->deleteLater();
 }

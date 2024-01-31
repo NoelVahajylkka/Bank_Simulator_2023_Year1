@@ -40,6 +40,7 @@ private slots:
     void clickHandler190Euros();
     void clickHandlerMuuSumma();
     void clickHandlerEnter();
+    void clickHandlerPeruuta();
 
     void replyT(QNetworkReply*reply);
     void replyNRaja(QNetworkReply*reply);

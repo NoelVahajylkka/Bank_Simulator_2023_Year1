@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>491</width>
-    <height>405</height>
+    <height>459</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -197,6 +197,25 @@ background-color:rgba(230, 120, 40,0.9); color: rgba(0, 0, 0, 0.8);
         </property>
         <property name="text">
          <string>140€</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0" colspan="2">
+       <widget class="QPushButton" name="buttonPeruuta">
+        <property name="mouseTracking">
+         <bool>true</bool>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton#buttonPeruuta{
+background-color:rgba(242, 140, 40,0.9); color: rgba(0, 0, 0, 0.8);
+color: white;
+}
+QPushButton#buttonPeruuta:hover{
+background-color:rgba(230, 120, 40,0.9); color: rgba(0, 0, 0, 0.8); 
+}</string>
+        </property>
+        <property name="text">
+         <string>Peruuta</string>
         </property>
        </widget>
       </item>

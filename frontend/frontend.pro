@@ -1,4 +1,5 @@
 QT       += core gui
+QT += serialport
 QT +=network
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -22,32 +23,32 @@ FORMS += \
 
 
 
-win32: LIBS += -L$$PWD/KirjautumisDLL/build/debug/ -lKirjautumisDLL
+win32: LIBS += -L$$PWD/build-KirjautumisDLL-Desktop_Qt_6_5_0_MinGW_64_bit-Debug/debug/ -lKirjautumisDLL
 
 INCLUDEPATH += $$PWD/KirjautumisDLL
 DEPENDPATH += $$PWD/KirjautumisDLL
 
-win32: LIBS += -L$$PWD/DLLTalletus/build/debug/ -lTalletusDLL
-
-INCLUDEPATH += $$PWD/DLLTalletus
-DEPENDPATH += $$PWD/DLLTalletus
-
-win32: LIBS += -L$$PWD/NostoTalletusDLL/build/debug/ -lNostoTalletusDLL
+win32: LIBS += -L$$PWD/build-NostoTalletusDLL-Desktop_Qt_6_5_0_MinGW_64_bit-Debug/debug/ -lNostoTalletusDLL
 
 INCLUDEPATH += $$PWD/NostoTalletusDLL
 DEPENDPATH += $$PWD/NostoTalletusDLL
 
-win32: LIBS += -L$$PWD/nostoTalletusHistoriaDLL/build/debug/ -lnostoTalletusHistoriaDLL
+win32: LIBS += -L$$PWD/build-nostoTalletusHistoriaDLL-Desktop_Qt_6_5_0_MinGW_64_bit-Debug/debug/ -lnostoTalletusHistoriaDLL
 
 INCLUDEPATH += $$PWD/nostoTalletusHistoriaDLL
 DEPENDPATH += $$PWD/nostoTalletusHistoriaDLL
 
-win32: LIBS += -L$$PWD/rfidDLL/build/debug/ -lrfidDLL
+win32: LIBS += -L$$PWD/build-TestiRFID-Desktop_Qt_6_5_0_MinGW_64_bit-Debug/debug/ -lTestiRFID
 
-INCLUDEPATH += $$PWD/rfidDLL
-DEPENDPATH += $$PWD/rfidDLL
+INCLUDEPATH += $$PWD/TestiRFID
+DEPENDPATH += $$PWD/TestiRFID
 
-win32: LIBS += -L$$PWD/TiliDLL/build/debug/ -lTiliDLL
+win32: LIBS += -L$$PWD/build-TiliDLL-Desktop_Qt_6_5_0_MinGW_64_bit-Debug/debug/ -lTiliDLL
 
 INCLUDEPATH += $$PWD/TiliDLL
 DEPENDPATH += $$PWD/TiliDLL
+
+win32: LIBS += -L$$PWD/build-TalletusDLL-Desktop_Qt_6_5_0_MinGW_64_bit-Debug/debug/ -lTalletusDLL
+
+INCLUDEPATH += $$PWD/DLLTalletus
+DEPENDPATH += $$PWD/DLLTalletus

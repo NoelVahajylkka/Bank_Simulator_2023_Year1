@@ -1,7 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 #include "kirjautumisikkuna.h"
-#include "rfid.h"
+#include "testirfid.h"
 #include "tili.h"
 #include "Dialog.h"
 #include "TalletusDLL.h"
@@ -24,7 +24,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     Kirjautumisikkuna * kirjautumisptr;
-    rfid *pRFID;
+    testiRFID *pRFID;
     Tili *tiliptr;
     NostoTalletus *nostoptr;
     Dialog *historiaptr;

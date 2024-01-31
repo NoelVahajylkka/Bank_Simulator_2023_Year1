@@ -2,15 +2,16 @@
 #include "qobjectdefs.h"
 #include "ui_mainwindow.h"
 #include <QDebug>
+#include <QSerialPort>
+#include <QSerialPortInfo>
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    setWindowTitle("RFID lukija");
+    setWindowTitle("Pankkiautomaatti");
     //Yhdistetään nappi clickHandleriin joka avaa rfidDLL:n
     connect(ui->pushButton, SIGNAL(clicked(bool)), this, SLOT(RFIDclickHandler()));
-
 }
 
 MainWindow::~MainWindow()
@@ -49,17 +50,22 @@ void MainWindow::Kirjauduttu()
     if(Pinauth == true){
         //tarkistus Booleani siitä onko tilillä monta Tiliä
      tiliptr->Valinta = Valinta;
+     tiliptr->Tiliid = TiliID;
+     tiliptr->token = Token;
      if(Debit == true){
          //asetetaan Tilinumero asiakkaan Uiihin
          tiliptr->Tilinum = DebitNum;
          tiliptr->Debit = Debit;
-         tiliptr->TiliNumSet();
-     } else {
+         tiliptr->tilihaku();
+     }else{
          //asetetaan Tilinumero asiakkaan Uiihin
          tiliptr->Tilinum = CreditNum;
          tiliptr->Debit = Debit;
-         tiliptr->TiliNumSet();
+         tiliptr->tilihaku();
      }
+     historiaptr = new Dialog(this);
+     nostoptr = new NostoTalletus(this);
+     talletusptr = new Talletus(this);
      tiliptr->open();
      connect(tiliptr, SIGNAL(creditDebit()),this,SLOT(creditDebitSlot()));
      connect(tiliptr, SIGNAL(kirjauduUlos()), this,SLOT(kirjauduUlosSlot()));
@@ -75,7 +81,7 @@ void MainWindow::RFIDclickHandler()
     //Avataan rfidDLL
     Pinauth = false;
     TiedonHaku = true;
-    pRFID = new rfid(this);
+    pRFID = new testiRFID(this);
     pRFID->open();
     //Vastaanotetaan kortin numero QString muodossa
     connect(pRFID,SIGNAL (sendCardNumber(QString)),
@@ -88,7 +94,9 @@ void MainWindow::KortinNumeronPalautus(QString num)
     //Suljetaan rfidDLL ja tarkistetaan että DLL palautti kortin numeron.
     pRFID->close();
     //this->close();
+    pRFID->deleteLater();
     pRFID = nullptr;
+    num.resize(10);
     qDebug()<<"Kortin numero:"<<num;
     kirjautumisptr->DatabaseKey = num;
     kirjautumisptr->open();
@@ -134,7 +142,6 @@ void MainWindow::talletusSlot()
     talletusptr->DebitSaldo = DebitSaldo;
     talletusptr->Debit = Debit;
     talletusptr->open();
-
     connect(talletusptr, SIGNAL(lahetys(float,float)),
             this, SLOT(lukuVastaanotettuSlot(float,float)));
 }
@@ -142,7 +149,6 @@ void MainWindow::talletusSlot()
 void MainWindow::HistoriaSlot()
 {
     qDebug()<<"HistoriaSLot"; 
-    historiaptr = new Dialog(this);
     historiaptr->token = Token;
     historiaptr->Debit = Debit;
     historiaptr->TiliID = TiliID;
@@ -153,13 +159,32 @@ void MainWindow::HistoriaSlot()
 void MainWindow::kirjauduUlosSlot()
 {
     qDebug()<<"UlosKirjauduttu";
+    qDebug()<<historiaptr;
+    historiaptr->close();
+    talletusptr->close();
+    nostoptr->close();
+    tiliptr->close();
+    tiliptr->deleteLater();
+    talletusptr->deleteLater();
+    tiliptr->deleteLater();
+    nostoptr->deleteLater();
+
+
 }
 
 void MainWindow::lukuVastaanotettuSlot(float saldoSent, float lukuSent)
 {
     // Asetetaan saadut luvut muuttujiin saldoReveiced ja lukuReceived ja lasketaan ne yhteen muuttujaan newBalance
     float saldoReceived, lukuReceived, newBalance;
-    saldoReceived = saldoSent;
+    tiliptr->tilihaku();
+    if(Debit==true){
+    saldoReceived = tiliptr->DebitSaldo.toFloat();
+    }
+    else{
+        saldoReceived = tiliptr->CreditSaldo.toFloat();
+    }
+    qDebug()<<saldoSent;
+    qDebug()<<lukuSent;
     lukuReceived = lukuSent;
     newBalance = saldoReceived + (lukuReceived);
 
@@ -238,6 +263,7 @@ void MainWindow::updateBalanceSlot(QNetworkReply *reply)
     qDebug()<<response_data;
     reply->deleteLater();
     putManager->deleteLater();
+    tiliptr->tilihaku();
 }
 
 void MainWindow::postHistorySlot(QNetworkReply *reply)

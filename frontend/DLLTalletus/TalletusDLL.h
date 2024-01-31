@@ -31,6 +31,7 @@ private:
 
 signals:
     void lahetys(float, float);
+    void update();
 };
 
 #endif // TALLETUSDLL_H
